@@ -30,4 +30,22 @@ export class UserModel {
     );
     return res.rows[0];
   }
+
+  static async findByTelegramUserId(telegramUserId: number) {
+    const res = await pg.query(
+      `SELECT * FROM users WHERE telegram_user_id = $1 LIMIT 1`,
+      [telegramUserId],
+    );
+    return res.rows[0] ?? null;
+  }
+
+  static async findByUsername(username: string) {
+    const clean = username.startsWith("@") ? username.slice(1) : username;
+    const res = await pg.query(
+      `SELECT * FROM users WHERE username = $1 LIMIT 1`,
+      [clean],
+    );
+    return res.rows[0] ?? null;
+  }
+
 }
