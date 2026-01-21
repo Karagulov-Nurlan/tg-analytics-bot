@@ -62,8 +62,6 @@ function statsKeyboard() {
   ]);
 }
 
-
-
 const token = process.env.BOT_TOKEN;
 if (!token) throw new Error("BOT_TOKEN is missing");
 
@@ -71,16 +69,16 @@ const bot = new Telegraf(token);
 
 bot.command("ping", (ctx) => ctx.reply("pong ✅"));
 
-bot.command('stats', async (ctx) => {
+bot.command("stats", async (ctx) => {
   const chatId = ctx.chat?.id;
   if (!chatId) return;
 
-  const text = await buildStatsText(chatId, 'all');
+  const text = await buildStatsText(chatId, "all");
   await ctx.reply(text, statsKeyboard());
 });
 
 bot.action(/^stats:(day|week|month|all)$/, async (ctx) => {
-  const preset = ctx.match[1] as 'day' | 'week' | 'month' | 'all';
+  const preset = ctx.match[1] as "day" | "week" | "month" | "all";
   const chatId = ctx.chat?.id;
   if (!chatId) return;
 
@@ -88,8 +86,6 @@ bot.action(/^stats:(day|week|month|all)$/, async (ctx) => {
   await ctx.editMessageText(text, statsKeyboard());
   await ctx.answerCbQuery(); // убирает "часики" у кнопки
 });
-
-
 
 bot.on("text", async (ctx) => {
   try {
