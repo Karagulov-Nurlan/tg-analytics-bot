@@ -1,6 +1,8 @@
 import { ChatModel } from './models/chat.model';
 import { UserModel } from './models/user.model';
 import { MessageModel } from './models/message.model';
+import { StatsModel } from './models/stats.model';
+
 
 import { Telegraf } from 'telegraf';
 import 'dotenv/config';
@@ -43,6 +45,28 @@ bot.on('text', async (ctx) => {
   } catch (e) {
     console.error('save failed', e);
   }
+});
+
+bot.command('stats', async (ctx) => {
+  const chatId = ctx.chat?.id;
+  if (!chatId) return;
+
+  const top = await StatsModel.topUsersAllTime(chatId);
+  const totals = await StatsModel.totalMessagesAndUsers(chatId);
+
+  const lines = top.map((r, i) => {
+    const name =
+      r.username ? `@${r.username}` :
+      [r.first_name, r.last_name].filter(Boolean).join(' ') || `id:${r.telegram_user_id}`;
+    return `${i + 1}. ${name} - ${Number(r.cnt)} сообщений`;
+  });
+
+  const text =
+    `Статистика чата за всё время:\n\n` +
+    (lines.length ? lines.join('\n') : 'Пока нет данных') +
+    `\n\nВсего: ${totals.total_messages} сообщений от ${totals.total_users} пользователей`;
+
+  await ctx.reply(text);
 });
 
 
