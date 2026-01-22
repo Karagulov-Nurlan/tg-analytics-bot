@@ -1,74 +1,144 @@
 tg-analytics-bot
-================
+Обзор
 
-Overview
---------
-Telegram bot that stores chat messages in Postgres, tracks basic stats, and can analyze a user's recent messages. Stats are cached in Redis. The bot runs with Telegraf and can call an AI provider via OpenRouter (with a local heuristic fallback).
+tg-analytics-bot — это проект, состоящий из двух частей: Telegram-бота и web-приложения.
+Согласно техническому заданию, бот отвечает за сбор и анализ данных из Telegram-чатов, а web-часть (на Next.js) предназначена для отображения статистики и результатов анализа в браузере.
 
-Features
---------
-- Save all incoming text messages into Postgres
-- /stats command with presets (day/week/month/all) and Redis caching
-- /analyze command for a specific user (via @username or reply)
-- AI analysis via OpenRouter, fallback to local word stats
+Telegram-бот реализован и работает корректно.
+Web-часть на Next.js была реализована частично и не доведена до конца из-за нехватки времени, поэтому в текущем состоянии работает некорректно и требует доработки.
 
-Tech Stack
-----------
-- Node.js + TypeScript + ts-node
-- Telegraf (Telegram bot framework)
-- Postgres (data storage)
-- Redis (stats cache)
-- OpenRouter (AI analysis)
+Бот сохраняет сообщения в базу данных Postgres, считает базовую статистику, кэширует результаты в Redis и может анализировать сообщения пользователей с помощью AI через OpenRouter, с локальным fallback-анализом.
 
-Project Structure
------------------
-- apps/bot/src/index.ts: bot entrypoint, commands, and message ingest
-- apps/bot/src/models: Postgres access layer (chats, users, messages, stats)
-- apps/bot/src/services: AI providers and local analysis
-- apps/bot/src/db: Postgres and Redis clients
-- infra/docker-compose.yml: Postgres, Redis, bot, and a placeholder web container
-- infra/db/init/001_init.sql: database schema
+Функциональность
 
-Setup (Docker)
---------------
-1) Copy env template and fill real secrets:
-   cp .env.example .env
-2) Start services:
-   docker compose -f infra/docker-compose.yml up --build
+Telegram-бот:
 
-Local Run (without Docker)
---------------------------
-1) Install deps in apps/bot:
-   cd apps/bot && npm install
-2) Ensure Postgres + Redis are running and DATABASE_URL/REDIS_URL are set
-3) Run the bot:
-   npx ts-node src/index.ts
+Сохранение всех входящих текстовых сообщений из чатов
 
-Environment Variables
----------------------
-Required:
-- BOT_TOKEN: Telegram bot token
-- DATABASE_URL: Postgres connection string
-- REDIS_URL: Redis connection string
+Хранение данных в Postgres
 
-Optional:
-- CACHE_TTL_SECONDS (default 1200)
-- OPENROUTER_API_KEY
-- OPENROUTER_MODEL (default openai/gpt-4o-mini)
+Подсчёт статистики сообщений за разные периоды
 
-Notes:
-- .env.example contains placeholders; replace with real secrets.
-- If OpenRouter is not configured, /analyze uses a local heuristic summary.
+Кэширование статистики в Redis
 
-Database Schema (summary)
--------------------------
-- chats: telegram_chat_id, title
-- users: telegram_user_id, username, first_name, last_name
-- messages: chat_id, user_id, telegram_message_id, text, created_at
+Анализ последних сообщений пользователя с помощью AI или локальной эвристики
 
-Bot Commands
-------------
-- /ping: health check
-- /stats: inline keyboard with presets
-- /analyze @username: AI analysis of the user's last messages
-- /analyze (reply): analyze the replied user's messages
+Web-часть (Next.js):
+
+Предназначена для отображения статистики и результатов анализа
+
+Реализована частично
+
+Работает некорректно и требует доработки
+
+Команды бота
+
+/ping — проверка работоспособности бота
+
+/stats — вывод статистики с пресетами (день / неделя / месяц / всё время)
+
+/analyze @username — анализ последних сообщений пользователя по имени
+
+/analyze (ответом на сообщение) — анализ сообщений пользователя, на сообщение которого был дан ответ
+
+Технологический стек
+
+Node.js
+
+TypeScript
+
+Telegraf (Telegram bot framework)
+
+Postgres (хранение данных)
+
+Redis (кэширование статистики)
+
+OpenRouter (доступ к AI-моделям)
+
+DeepSeek (используемая AI-модель)
+
+Next.js (web-часть проекта)
+
+AI-анализ
+
+По техническому заданию планировалось использовать модель Gemini, однако на момент разработки у неё отсутствовал бесплатный API.
+В связи с этим для анализа сообщений была использована модель DeepSeek через OpenRouter.
+
+Если OpenRouter не настроен, бот использует локальный эвристический анализ (подсчёт слов и базовые статистики).
+
+Структура проекта
+
+apps/bot/src/index.ts
+— точка входа Telegram-бота, регистрация команд и приём сообщений
+
+apps/bot/src/models
+— слой работы с Postgres (чаты, пользователи, сообщения, статистика)
+
+apps/bot/src/services
+— AI-провайдеры и локальный анализ
+
+apps/bot/src/db
+— клиенты Postgres и Redis
+
+infra/docker-compose.yml
+— конфигурация Docker для Postgres, Redis, бота и web-части
+
+infra/db/init/001_init.sql
+— SQL-схема базы данных
+
+Схема базы данных (кратко)
+
+chats: telegram_chat_id, title
+
+users: telegram_user_id, username, first_name, last_name
+
+messages: chat_id, user_id, telegram_message_id, text, created_at
+
+Переменные окружения
+
+Обязательные:
+
+BOT_TOKEN — токен Telegram-бота
+
+DATABASE_URL — строка подключения к Postgres
+
+REDIS_URL — строка подключения к Redis
+
+Опциональные:
+
+CACHE_TTL_SECONDS — TTL кэша статистики (по умолчанию 1200 секунд)
+
+OPENROUTER_API_KEY — ключ OpenRouter
+
+OPENROUTER_MODEL — модель для анализа (по умолчанию openai/gpt-4o-mini)
+
+Запуск с помощью Docker
+
+Скопировать файл с переменными окружения:
+cp .env.example .env
+
+Заполнить .env реальными значениями
+
+Запустить проект:
+docker compose -f infra/docker-compose.yml up --build
+
+Локальный запуск (без Docker)
+
+Перейти в папку с ботом и установить зависимости:
+cd apps/bot
+npm install
+
+Убедиться, что Postgres и Redis запущены и переменные окружения заданы
+
+Запустить бота:
+npx ts-node src/index.ts
+
+Примечания
+
+Telegram-бот реализован в полном объёме и соответствует техническому заданию.
+
+Web-часть на Next.js реализована частично и не доведена до конца из-за нехватки времени.
+
+Для AI-анализа используется DeepSeek через OpenRouter вместо Gemini из-за отсутствия бесплатного API у Gemini.
+
+Проект требует доработки web-части для полного соответствия техническому заданию.
